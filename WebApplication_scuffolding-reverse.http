@@ -1,0 +1,6 @@
+@WebApplication_scuffolding_reverse_HostAddress = http://localhost:5031
+
+GET {{WebApplication_scuffolding_reverse_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
