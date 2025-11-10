@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.Json.Serialization;
 using WebApplication_scuffolding_reverse.Models;
 
@@ -37,6 +39,30 @@ namespace WebApplication_scuffolding_reverse
                                .SetIsOriginAllowed(host => true);
                     });
             });
+
+            // JWT Authentication
+            //eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6Im9ybG9mZiIsIm5iZiI6MTcxMzc4NzQxMCwiZXhwIjoxNzEzNzg3NDcwL
+            //    CJpYXQiOjE3MTM3ODc0MTAsImlzcyI6IlVubyIsImF1ZCI6IkR1ZSJ9._jCXEWeoIQpjZPexxhAUCvv6myYTttuKMp3z0dYnrhs
+
+            JwtSettings jwtSettings = new();
+            //builder.Configuration.Bind(nameof(JwtSettings), jwtSettings);
+            jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
+            builder.Services.AddSingleton(jwtSettings);
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    var key = System.Text.Encoding.ASCII.GetBytes(jwtSettings.SecretKey!);
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSettings.Issuer,
+                        ValidAudience = jwtSettings.Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(key)
+                    };
+                });
 
             var app = builder.Build();
 
